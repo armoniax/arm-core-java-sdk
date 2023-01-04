@@ -1,0 +1,255 @@
+package io.armoniax.sign;
+import io.armoniax.enums.AlgorithmEmployed;
+import io.armoniax.error.EosioError;
+import io.armoniax.error.signatureProvider.GetAvailableKeysError;
+import io.armoniax.error.signatureProvider.SignTransactionError;
+import io.armoniax.error.utilities.EOSFormatterError;
+import io.armoniax.error.utilities.EosFormatterSignatureIsNotCanonicalError;
+import io.armoniax.error.utilities.PEMProcessorError;
+import io.armoniax.provider.ISignatureProvider;
+import io.armoniax.models.signature.TransactionSignatureRequest;
+import io.armoniax.models.signature.TransactionSignatureResponse;
+import io.armoniax.sign.error.ImportKeyError;
+import io.armoniax.sign.error.SignatureErrorConstants;
+import io.armoniax.tools.EOSFormatter;
+import io.armoniax.tools.PEMProcessor;
+import org.bitcoinj.core.Sha256Hash;
+import org.bouncycastle.crypto.params.ECDomainParameters;
+import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
+import org.bouncycastle.crypto.signers.ECDSASigner;
+import org.bouncycastle.util.encoders.Hex;
+import org.jetbrains.annotations.NotNull;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * Example signature provider implementation for EOSIO-java SDK that signs transactions using
+ * an in-memory private key generated with the secp256r1, prime256v1, or secp256k1 algorithms.  This
+ * implementation is NOT secure and should only be used for educational purposes.  It is NOT
+ * advisable to store private keys outside secure devices like TEE's and SE's.
+ */
+public class SoftSignatureProviderImpl implements ISignatureProvider {
+
+    /**
+     * Keep a Set (Unique) of private keys in PEM format
+     */
+    private final Set<String> keys = new LinkedHashSet<>();
+
+    /**
+     * Maximum number of times the signature provider should try to create a canonical signature
+     * for a secp256k1 generated key when the attempt fails.
+     */
+    private static final int MAX_NOT_CANONICAL_RE_SIGN = 100;
+
+    /**
+     * Index of R value in the signature result of softkey signing
+     */
+    private static final int R_INDEX = 0;
+
+    /**
+     * Index of S value in the signature result of softkey signing
+     */
+    private static final int S_INDEX = 1;
+
+    /**
+     * Signum to convert a negative value to a positive Big Integer
+     */
+    private static final int BIG_INTEGER_POSITIVE = 1;
+
+    /**
+     * Flag to indicate getAvailableKeys() should return keys generated with the secp256k1 algorithm in the legacy (prefaced with "EOS")
+     */
+    private static final boolean USING_K1_LEGACY_FORMAT = true;
+
+    /**
+     * Flag to indicate getAvailableKeys() should return keys generated with the secp256k1 algorithm in the new (prefaced with "PUB_K1_") formats
+     */
+    private static final boolean USING_K1_NON_LEGACY_FORMAT = false;
+
+    /**
+     * Flag to indicate whether getAvailableKeys() should return keys generated with the secp256k1 algorithm in the legacy (prefaced with "EOS") or new (prefaced with "PUB_K1_") formats.
+     */
+    private static final boolean DEFAULT_WHETHER_USING_K1_LEGACY_FORMAT = USING_K1_NON_LEGACY_FORMAT;
+
+    /**
+     * Import private key into softkey signature provider.  Private key is stored in memory.
+     * NOT RECOMMENDED for production use!!!!
+     *
+     * @param privateKey - Eos format private key
+     * @throws ImportKeyError Exception that occurs while trying to import a key
+     */
+    public void importKey(@NotNull String privateKey) throws ImportKeyError {
+        if (privateKey.isEmpty()) {
+            throw new ImportKeyError(SignatureErrorConstants.IMPORT_KEY_INPUT_EMPTY_ERROR);
+        }
+
+        String privateKeyPem;
+
+        try {
+            privateKeyPem = EOSFormatter.convertEOSPrivateKeyToPEMFormat(privateKey);
+        } catch (EOSFormatterError eosFormatterError) {
+            throw new ImportKeyError(String.format(SignatureErrorConstants.IMPORT_KEY_CONVERT_TO_PEM_ERROR, privateKey), eosFormatterError);
+        }
+
+        if (privateKeyPem.isEmpty()) {
+            throw new ImportKeyError(SignatureErrorConstants.CONVERT_TO_PEM_EMPTY_ERROR);
+        }
+
+        this.keys.add(privateKeyPem);
+    }
+
+    @Override
+    public @NotNull TransactionSignatureResponse signTransaction(@NotNull TransactionSignatureRequest transactionSignatureRequest) throws SignTransactionError {
+
+        if (transactionSignatureRequest.getSigningPublicKeys().isEmpty()) {
+            throw new SignTransactionError(SignatureErrorConstants.SIGN_TRANS_EMPTY_KEY_LIST);
+
+        }
+
+        if (transactionSignatureRequest.getChainId().isEmpty()) {
+            throw new SignTransactionError(SignatureErrorConstants.SIGN_TRANS_EMPTY_CHAIN_ID);
+        }
+
+        if (transactionSignatureRequest.getSerializedTransaction().isEmpty()) {
+            throw new SignTransactionError(SignatureErrorConstants.SIGN_TRANS_EMPTY_TRANSACTION);
+        }
+
+        // Getting serializedTransaction and preparing signable transaction
+        String serializedTransaction = transactionSignatureRequest.getSerializedTransaction();
+
+        // This is the un-hashed message which is used to recover public key
+        byte[] message;
+
+        // This is the hashed message which is signed.
+        byte[] hashedMessage;
+
+        try {
+            message = Hex.decode(EOSFormatter.prepareSerializedTransactionForSigning(serializedTransaction, transactionSignatureRequest.getChainId()).toUpperCase());
+            hashedMessage = Sha256Hash.hash(message);
+        } catch (EOSFormatterError eosFormatterError) {
+            throw new SignTransactionError(String.format(SignatureErrorConstants.SIGN_TRANS_PREPARE_SIGNABLE_TRANS_ERROR, serializedTransaction), eosFormatterError);
+        }
+
+        if (this.keys.isEmpty()) {
+            throw new SignTransactionError(SignatureErrorConstants.SIGN_TRANS_NO_KEY_AVAILABLE);
+        }
+
+        List<String> signatures = new ArrayList<>();
+
+        // Getting public key and search for the corresponding private key
+        for (String inputPublicKey : transactionSignatureRequest.getSigningPublicKeys()) {
+
+            BigInteger privateKeyBI = BigInteger.ZERO;
+            AlgorithmEmployed curve = null;
+
+            try {
+                // Search for corresponding private key
+                for (String key : keys) {
+                    PEMProcessor availableKeyProcessor = new PEMProcessor(key);
+                    //Extract public key in PEM format from inner private key
+                    String innerPublicKeyPEM = availableKeyProcessor.extractPEMPublicKeyFromPrivateKey(DEFAULT_WHETHER_USING_K1_LEGACY_FORMAT);
+
+                    // Convert input public key to PEM format for comparision
+                    String inputPublicKeyPEM = EOSFormatter.convertEOSPublicKeyToPEMFormat(inputPublicKey);
+
+                    if (innerPublicKeyPEM.equals(inputPublicKeyPEM)) {
+                        privateKeyBI = new BigInteger(BIG_INTEGER_POSITIVE, availableKeyProcessor.getKeyData());
+                        curve = availableKeyProcessor.getAlgorithm();
+                        break;
+                    }
+                }
+            } catch (EosioError error) {
+                throw new SignTransactionError(String.format(SignatureErrorConstants.SIGN_TRANS_SEARCH_KEY_ERROR, inputPublicKey), error);
+            }
+
+            // Throw error if found no private key with input public key
+            //noinspection ConstantConditions
+            if (privateKeyBI.equals(BigInteger.ZERO) || curve == null) {
+                throw new SignTransactionError(String.format(SignatureErrorConstants.SIGN_TRANS_KEY_NOT_FOUND, inputPublicKey));
+            }
+
+            for (int i = 0; i < MAX_NOT_CANONICAL_RE_SIGN; i++) {
+                // Sign transaction
+                // Use default constructor to have signature generated with secureRandom, otherwise it would generate same signature for same key all the time
+                ECDSASigner signer = new ECDSASigner();
+
+                ECDomainParameters domainParameters;
+                try {
+                    domainParameters = PEMProcessor.getCurveDomainParameters(curve);
+                } catch (PEMProcessorError processorError) {
+                    throw new SignTransactionError(String.format(SignatureErrorConstants.SIGN_TRANS_GET_CURVE_DOMAIN_ERROR, curve.getString()), processorError);
+                }
+
+                ECPrivateKeyParameters parameters = new ECPrivateKeyParameters(privateKeyBI, domainParameters);
+                signer.init(true, parameters);
+                BigInteger[] signatureComponents = signer.generateSignature(hashedMessage);
+
+                try {
+                    String signature = EOSFormatter.convertRawRandSofSignatureToEOSFormat(signatureComponents[R_INDEX].toString(), signatureComponents[S_INDEX].toString(), message, EOSFormatter.convertEOSPublicKeyToPEMFormat(inputPublicKey));
+                    // Format Signature
+                    signatures.add(signature);
+                    break;
+                } catch (EOSFormatterError eosFormatterError) {
+                    // In theory, Non-canonical error only happened with K1 key
+                    if (eosFormatterError.getCause() instanceof EosFormatterSignatureIsNotCanonicalError && curve == AlgorithmEmployed.SECP256K1) {
+                        // Try to sign again until MAX_NOT_CANONICAL_RE_SIGN is reached or get a canonical signature
+                        continue;
+                    }
+
+                    throw new SignTransactionError(SignatureErrorConstants.SIGN_TRANS_FORMAT_SIGNATURE_ERROR, eosFormatterError);
+                }
+            }
+        }
+
+        return new TransactionSignatureResponse(serializedTransaction, signatures, null);
+    }
+
+    /**
+     * Gets available keys from signature provider <br> Check createSignatureRequest() flow in
+     * "complete workflow" for more detail of how the method is used.
+     * <p>
+     * Public key of SECP256K1 has 2 types of format in EOSIO which are "EOS" and "PUB_K1_" so this method return 2 public keys in both format for SECP256K1 and 1 public key for SECP256R1.
+     *
+     * @return the available keys of signature provider in EOS format
+     * @throws GetAvailableKeysError thrown if there are any exceptions during the get available keys process.
+     */
+    @Override
+    public @NotNull List<String> getAvailableKeys() throws GetAvailableKeysError {
+        List<String> availableKeys = new ArrayList<>();
+        if (this.keys.isEmpty()) {
+            return availableKeys;
+        }
+
+        try {
+            for (String key : this.keys) {
+                PEMProcessor processor = new PEMProcessor(key);
+                AlgorithmEmployed curve = processor.getAlgorithm();
+
+                switch (curve) {
+                    case SECP256R1:
+                        // USING_K1_NON_LEGACY_FORMAT is being used here because its value does not matter to SECP256R1 key
+                        availableKeys.add(processor.extractEOSPublicKeyFromPrivateKey(USING_K1_NON_LEGACY_FORMAT));
+                        break;
+
+                    case SECP256K1:
+                        // Non legacy
+                        availableKeys.add(processor.extractEOSPublicKeyFromPrivateKey(USING_K1_NON_LEGACY_FORMAT));
+                        // legacy
+                        availableKeys.add(processor.extractEOSPublicKeyFromPrivateKey(USING_K1_LEGACY_FORMAT));
+                        break;
+
+                    default:
+                        throw new GetAvailableKeysError(SignatureErrorConstants.GET_KEYS_KEY_FORMAT_NOT_SUPPORTED);
+                }
+            }
+        } catch (PEMProcessorError pemProcessorError) {
+            throw new GetAvailableKeysError(SignatureErrorConstants.CONVERT_TO_PEM_EMPTY_ERROR, pemProcessorError);
+        }
+
+        return availableKeys;
+    }
+}
