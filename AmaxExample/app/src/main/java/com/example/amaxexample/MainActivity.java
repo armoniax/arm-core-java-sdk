@@ -16,43 +16,73 @@ import io.armoniax.signprovider.AmaxAndroidKeyStoreSignProvider;
 import io.armoniax.signprovider.AndroidKeyStoreUtility;
 
 public class MainActivity extends AppCompatActivity {
+    private AmaxClient mClient;
+    private String mPubKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        init();
+//        createAccount();
+//        transfer();
+//        buyMemory();
+//        stakeCpuAndNet();
     }
 
-    void test(){
+    private void init() {
         try {
             // Generate public and private keys
-            String pubKey = AndroidKeyStoreUtility.generateAndroidKeyStoreKey(UUID.randomUUID().toString());
-
+            mPubKey = AndroidKeyStoreUtility.generateAndroidKeyStoreKey(UUID.randomUUID().toString());
             AmaxOption option = AmaxOption.builder()
                     .setUrl("https://test-chain.ambt.art/")
                     .setSerializationProvider(new AbiSerializationProviderImpl())
                     .setAmaxSignKind(AmaxSignKind.KEYSTORE)
                     .setSignatureProvider(AmaxAndroidKeyStoreSignProvider.builder().build())
                     .build();
-            AmaxClient client = AmaxClientFactory.getAmaxClient(option);
+            mClient = AmaxClientFactory.getAmaxClient(option);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    private void createAccount() {
+        try {
             // create new account
-            client.createAccount(NewAccountOption.builder()
+            mClient.createAccount(NewAccountOption.builder()
                     .setTransfer(true)
                     .setCreator("merchantxpro")
                     .setNewAccount("bruceying123")
-                    .setBuyRamBytes(1024*8)
+                    .setBuyRamBytes(1024 * 8)
                     .setStakeCpuQuantity("10.00000000 AMAX")
                     .setStakeNetQuantity("10.00000000 AMAX")
-                    .setOwnerPubKey(pubKey)
-                    .setActivePubKey(pubKey)
+                    .setOwnerPubKey(mPubKey)
+                    .setActivePubKey(mPubKey)
                     .build());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-            client.transfer("merchantxpro","bruceying123","0.60000000 AMAX","this is test!");
+    private void transfer() {
+        try {
+            mClient.transfer("merchantxpro", "bruceying123", "0.60000000 AMAX", "this is test!");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-            client.buyRam("bruceying123","bruceying123",8196);
+    private void buyMemory() {
+        try {
+            mClient.buyRam("bruceying123", "bruceying123", 8196);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-            client.stakeCpuAndNet("bruceying123","bruceying123","10.0000 EOS","10.0000 EOS",true);
+    private void stakeCpuAndNet() {
+        try {
+            mClient.stakeCpuAndNet("bruceying123", "bruceying123", "10.0000 AMAX", "10.0000 AMAX", true);
         } catch (Exception e) {
             e.printStackTrace();
         }

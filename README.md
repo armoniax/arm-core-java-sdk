@@ -3,27 +3,27 @@ Armonia RealMe Account Core Java SDK
 
 
 ## Android
+Configure warehouse address：
+```
+        maven {
+            url "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+        }
+```
 
 Add the required dependencies to the Android project:
 
 ```
-    implementation 'org.bouncycastle:bcprov-jdk15on:1.61'
-    implementation 'org.bouncycastle:bcpkix-jdk15on:1.61'
-    implementation 'com.squareup.retrofit2:retrofit:2.5.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
-    implementation 'com.squareup.okhttp3:okhttp:3.12.1'
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.12.1'
-    implementation 'org.bitcoinj:bitcoinj-core:0.15.2'
-    implementation 'org.slf4j:slf4j-jdk14:1.7.25'
+    implementation 'io.github.armoniax:amax4j:1.0.0-SNAPSHOT'
+    implementation 'io.github.armoniax:amax-sign-provider-4a:1.0.0-SNAPSHOT'
+    implementation 'io.github.armoniax:amax-serialization-provider-4a:1.0.0-SNAPSHOT'
 ```
 
-Then, you need at least two AMAX dependent libraries:
-`amax4j.jar`、`amax-serialization-provider-4a@release.aar`
-
-If you use `AmaxAndroidKeyStoreSignProvider` to manage private keys, then you also need `amax-sign-provider-4a@release.aar`
+You can view the [sample project](https://github.com/arcticfox88/arm-core-java-sdk/tree/main/AmaxExample).
 
 
-###  Simple Example
+###  Usage
+
+You can refer to the [example project](https://github.com/arcticfox88/arm-core-java-sdk/tree/main/AmaxExample).
 
 ```java
     try {
@@ -55,7 +55,7 @@ If you use `AmaxAndroidKeyStoreSignProvider` to manage private keys, then you al
 
         client.buyRam("bruceying123","bruceying123",8196);
 
-        client.stakeCpuAndNet("bruceying123","bruceying123","10.0000 EOS","10.0000 EOS",true);
+        client.stakeCpuAndNet("bruceying123","bruceying123","10.0000 AMAX","10.0000 AMAX",true);
     } catch (Exception e) {
         e.printStackTrace();
     }
