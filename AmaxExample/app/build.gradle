@@ -1,0 +1,40 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example.amaxexample'
+    compileSdk 32
+
+    defaultConfig {
+        applicationId "com.example.amaxexample"
+        minSdk 21
+        targetSdk 32
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    // amax dependencies
+    implementation 'io.github.armoniax:amax4j:1.0.0-SNAPSHOT'
+    implementation 'io.github.armoniax:amax-sign-provider-4a:1.0.0-SNAPSHOT'
+    implementation 'io.github.armoniax:amax-serialization-provider-4a:1.0.0-SNAPSHOT'
+
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
+}

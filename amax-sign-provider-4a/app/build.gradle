@@ -1,5 +1,8 @@
-apply plugin: 'com.android.library'
-
+plugins {
+    id 'com.android.library'
+    id "maven-publish"
+    id "signing"
+}
 
 android {
     compileSdkVersion 33
@@ -8,8 +11,6 @@ android {
         minSdkVersion 23
         targetSdkVersion 33
         versionCode 1
-
-//        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -23,21 +24,71 @@ android {
         abortOnError false
     }
 
-    android.libraryVariants.all{
-        variant -> variant.outputs.all {
-            outputFileName = "amax-sign-provider-4a@" + buildType.name + ".aar"
-        }
+    android.libraryVariants.all {
+        variant ->
+            variant.outputs.all {
+                outputFileName = "amax-sign-provider-4a@" + PUSH_VERSION + ".aar"
+            }
     }
 }
 
 dependencies {
-    compileOnly files('/Users/bruce/workspace/java/amax4j/build/libs/amax4j.jar')
+    implementation 'io.github.armoniax:amax4j:1.0.0-SNAPSHOT'
     implementation 'androidx.annotation:annotation:1.5.0'
     implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'org.bouncycastle:bcprov-jdk15on:1.61'
     implementation 'org.bouncycastle:bcpkix-jdk15on:1.61'
+}
 
-//    testImplementation 'junit:junit:4.13.2'
-//    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-//    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+publishing {
+    repositories {
+        repositories {
+            maven {
+                name 'sonatypeRepository'
+                def releasesUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                def snapshotUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+                url = PUSH_VERSION.toString().endsWith('SNAPSHOT') ? snapshotUrl : releasesUrl
+
+                credentials {
+                    username = "${sonatypeUsername}"
+                    password = "${sonatypePassword}"
+                }
+            }
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            groupId = 'io.github.armoniax'
+            artifactId = rootProject.name
+            version = PUSH_VERSION
+            pom {
+                name = 'amax-sign-provider'
+                description = "Armonia RealMe Account Core Java SDK"
+                url = "https://github.com/armoniax/arm-core-java-sdk"
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://mit-license.org/'
+                    }
+                }
+                developers {
+                    developer {
+                        id = "aplink"
+                        name = "APLink Pte. Ltd."
+                        email = "aplink2022@gmail.com"
+                    }
+                }
+                scm {
+                    url = 'https://github.com/armoniax/arm-core-java-sdk'
+                    connection = 'scm:git:https://github.com/armoniax/arm-core-java-sdk.git'
+                    developerConnection = 'scm:git:https://github.com/armoniax/arm-core-java-sdk.git'
+                }
+                artifact "./build/outputs/aar/amax-sign-provider-4a@${PUSH_VERSION}.aar"
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.maven
 }

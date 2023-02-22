@@ -1,13 +1,24 @@
 plugins {
     id 'java-library'
+    id "maven-publish"
+    id "signing"
 }
 
-group 'io.armoniax'
-version '1.0'
+group 'io.github.armoniax'
+version '1.0.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
 }
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier = 'sources'
+}
+//task javadocJar(type: Jar) {
+//    from javadoc
+//    archiveClassifier = 'javadoc'
+//}
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -29,18 +40,79 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-    implementation fileTree(dir: 'libs', includes: ['*.jar'])
+//    implementation fileTree(dir: 'libs', includes: ['*.jar'])
 }
 
 jar {
-    archiveFileName = 'amax4j.jar'
-//    from {
-//        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-//        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-//    }
-
+    archiveFileName = 'amax4j-'+ project.version + '.jar'
 }
+
+//task makeJar(type: Jar,dependsOn :['assembleRelease']){
+//    archiveFileName = 'amax4j'+ project.version + '.jar'
+//}
 
 test {
     useJUnitPlatform()
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version project.version
+
+            from components.java
+            pom {
+                name = 'amax4j'
+                description = "Armonia RealMe Account Core Java SDK"
+                url = "https://github.com/armoniax/arm-core-java-sdk"
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://mit-license.org/'
+                    }
+                }
+                developers {
+                    developer {
+                        id = "aplink"
+                        name = "APLink Pte. Ltd."
+                        email = "aplink2022@gmail.com"
+                    }
+                }
+                scm {
+                    url = 'https://github.com/armoniax/arm-core-java-sdk'
+                    connection = 'scm:git:https://github.com/armoniax/arm-core-java-sdk.git'
+                    developerConnection = 'scm:git:https://github.com/armoniax/arm-core-java-sdk.git'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name 'sonatypeRepository'
+            url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            credentials {
+                username = "${sonatypeUsername}"
+                password = "${sonatypePassword}"
+            }
+        }
+        maven {
+            name = 'sonatypeSnapshotRepository'
+            url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            credentials {
+                username = "${sonatypeUsername}"
+                password = "${sonatypePassword}"
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
 }

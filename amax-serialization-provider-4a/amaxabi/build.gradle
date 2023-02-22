@@ -1,7 +1,8 @@
-apply plugin: 'com.android.library'
-//Remove 'com.jfrog.artifactory' plugin if you are not using Artifactory
-//apply plugin: "com.jfrog.artifactory"
-apply plugin: 'maven-publish'
+plugins {
+    id 'com.android.library'
+    id "maven-publish"
+    id "signing"
+}
 
 android {
     compileSdkVersion 33
@@ -40,7 +41,7 @@ android {
 
     android.libraryVariants.all{
         variant -> variant.outputs.all {
-            outputFileName = "amax-serialization-provider-4a@" + buildType.name + ".aar"
+            outputFileName = "amax-serialization-provider-4a@" + PUSH_VERSION + ".aar"
         }
     }
 }
@@ -49,15 +50,10 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'org.bouncycastle:bcprov-jdk15on:1.61'
     implementation 'org.bouncycastle:bcpkix-jdk15on:1.61'
-    compileOnly files('/Users/bruce/workspace/java/amax4j/build/libs/amax4j.jar')
+    implementation 'io.github.armoniax:amax4j:1.0.0-SNAPSHOT'
     implementation 'androidx.annotation:annotation:1.5.0'
     implementation 'androidx.appcompat:appcompat:1.0.0-beta01'
 }
-
-
-def libraryGroupId = 'one.block'
-def libraryArtifactId = 'eosiojavaandroidabieosserializationprovider'
-def libraryVersion = '1.0.0'
 
 task androidJavadocs(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
@@ -80,92 +76,55 @@ task androidJavadocs(type: Javadoc) {
 //    from android.sourceSets.main.java.srcDirs
 //}
 
-//project.afterEvaluate {
-//    publishing {
-//        publications {
-//            maven(MavenPublication) {
-//                groupId libraryGroupId
-//                version libraryVersion
-//                artifactId libraryArtifactId
-//
-//                artifact bundleReleaseAar
-//                artifact androidJavadocsJar
-//                artifact androidSourcesJar
-//                pom {
-//                    name = 'EOSIO SDK for Java Android: ABIEOS Serialization Provider'
-//                    description = 'ABIEOS Serialization Provider is intended to be used in conjunction with EOSIO SDK for Java as a provider plugin.'
-//                    url = 'https://github.com/EOSIO/eosio-java-android-abieos-serialization-provider/'
-//                    licenses {
-//                        license {
-//                            name = 'MIT License'
-//                            url = 'https://github.com/EOSIO/eosio-java-android-abieos-serialization-provider/blob/master/LICENSE'
-//                        }
-//                    }
-//                    developers {
-//                        developer {
-//                            id = 'block.one'
-//                            name = 'Block One'
-//                            email = 'dev@block.one'
-//                        }
-//                    }
-//                }
-//
-//                pom.withXml {
-//                    final dependenciesNode = asNode().appendNode('dependencies')
-//
-//                    ext.addDependency = { dep, scope ->
-//                        if (dep.group == null || dep.version == null || dep.name == null || dep.name == "unspecified")
-//                            return //  ignore invalid dependencies
-//
-//                        final dependencyNode = dependenciesNode.appendNode('dependency')
-//                        dependencyNode.appendNode('groupId', dep.group)
-//                        dependencyNode.appendNode('artifactId', dep.name)
-//                        dependencyNode.appendNode('version', dep.version)
-//                        dependencyNode.appendNode('scope', scope)
-//
-//                        if (!dep.transitive) {
-//                            // If this dependency is transitive, we should force exclude all its dependencies from the POM
-//                            final exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
-//                            exclusionNode.appendNode('groupId', '*')
-//                            exclusionNode.appendNode('artifactId', '*')
-//                        } else if (!dep.properties.excludeRules.empty) {
-//                            // ...otherwise add specified exclude rules
-//                            final exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
-//                            dep.properties.excludeRules.each { rule ->
-//                                exclusionNode.appendNode('groupId', rule.group ?: '*')
-//                                exclusionNode.appendNode('artifactId', rule.module ?: '*')
-//                            }
-//                        }
-//                    }
-//
-//                    // List all "compile" dependencies (for old Gradle)
-//                    configurations.compile.getDependencies().each { dep -> addDependency(dep, "compile") }
-//                    // List all "api" dependencies (for new Gradle) as "compile" dependencies
-//                    configurations.api.getDependencies().each { dep -> addDependency(dep, "compile") }
-//                    // List all "implementation" dependencies (for new Gradle) as "runtime" dependencies
-//                    configurations.implementation.getDependencies().each { dep -> addDependency(dep, "runtime") }
-//                }
-//            }
-//        }
-//    }
-//}
+publishing {
+    repositories {
+        repositories {
+            maven {
+                name 'sonatypeRepository'
+                def releasesUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                def snapshotUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+                url = PUSH_VERSION.toString().endsWith('SNAPSHOT') ? snapshotUrl : releasesUrl
 
-//Remove artifactory{} block if you are not using Artifactory
-//artifactory {
-//    contextUrl = artifactory_contextURL
-//    publish {
-//        repository {
-//            repoKey = artifactory_repo
-//
-//            username = artifactory_username
-//            password = artifactory_password
-//        }
-//        defaults {
-//            publications('maven')
-//            publishArtifacts = true
-//
-//            properties = ['qa.level': 'basic', 'q.os': 'android', 'dev.team': 'core']
-//            publishPom = true
-//        }
-//    }
-//}
+                credentials {
+                    username = "${sonatypeUsername}"
+                    password = "${sonatypePassword}"
+                }
+            }
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            groupId = 'io.github.armoniax'
+            artifactId = rootProject.name
+            version = PUSH_VERSION
+            pom {
+                name = 'amax-serialization-provider'
+                description = "Armonia RealMe Account Core Java SDK"
+                url = "https://github.com/armoniax/arm-core-java-sdk"
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://mit-license.org/'
+                    }
+                }
+                developers {
+                    developer {
+                        id = "aplink"
+                        name = "APLink Pte. Ltd."
+                        email = "aplink2022@gmail.com"
+                    }
+                }
+                scm {
+                    url = 'https://github.com/armoniax/arm-core-java-sdk'
+                    connection = 'scm:git:https://github.com/armoniax/arm-core-java-sdk.git'
+                    developerConnection = 'scm:git:https://github.com/armoniax/arm-core-java-sdk.git'
+                }
+                artifact "./build/outputs/aar/amax-serialization-provider-4a@${PUSH_VERSION}.aar"
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.maven
+}
