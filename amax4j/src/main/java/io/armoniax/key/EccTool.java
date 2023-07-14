@@ -2,6 +2,7 @@ package io.armoniax.key;
 
 import io.armoniax.key.ecc.*;
 
+import java.util.Arrays;
 import java.math.BigInteger;
 import java.util.Objects;
 import java.util.UUID;
@@ -10,12 +11,14 @@ public class EccTool {
     public static final String address_prefix = "AM";
 
     public static final Secp256k secp = new Secp256k();
+
     public static String createPrivateKey() {
         return createPrivateKey(UUID.randomUUID().toString());
     }
+
     public static String createPrivateKey(String seed) {
         Objects.requireNonNull(seed);
-        byte[] a = { (byte) 0x80 };
+        byte[] a = {(byte) 0x80};
         byte[] b = new BigInteger(SHA.sha256(seed)).toByteArray();
         byte[] private_key = Raw.concat(a, b);
         byte[] checksum = SHA.sha256(private_key);
@@ -24,11 +27,12 @@ public class EccTool {
         byte[] pk = Raw.concat(private_key, check);
         return Base58.encode(pk);
     }
+
     private static BigInteger privateKey(String pk) {
         byte[] private_wif = Base58.decode(pk);
         byte version = (byte) 0x80;
         if (private_wif[0] != version) {
-            throw new IllegalArgumentException( "Expected version " + 0x80 + ", instead got " + version);
+            throw new IllegalArgumentException("Expected version " + 0x80 + ", instead got " + version);
         }
         byte[] private_key = Raw.copy(private_wif, 0, private_wif.length - 4);
         byte[] new_checksum = SHA.sha256(private_key);
@@ -38,10 +42,11 @@ public class EccTool {
         BigInteger d = new BigInteger(Hex.toHex(last_private_key), 16);
         return d;
     }
-    public static String toPublicKey(String privateKey) {
-        Objects.requireNonNull(privateKey);
+
+    public static String toPublicKey(String priKey) {
+        Objects.requireNonNull(priKey);
         // private key
-        BigInteger d = privateKey(privateKey);
+        BigInteger d = privateKey(priKey);
         // publick key
         Point ep = secp.G().multiply(d);
         byte[] pub_buf = ep.getEncoded();
@@ -52,7 +57,7 @@ public class EccTool {
         bf.append(Base58.encode(addy));
         return bf.toString();
     }
-    
+
     public static String signHash(String pk, byte[] b) {
         String dataSha256 = Hex.toHex(SHA.sha256(b));
         BigInteger e = new BigInteger(dataSha256, 16);
@@ -87,12 +92,12 @@ public class EccTool {
     }
 
 
-    public static String sign(String pubKey,String data) {
+    public static String sign(String priKey, String data) {
         String dataSha256 = Hex.toHex(SHA.sha256(data));
         BigInteger e = new BigInteger(dataSha256, 16);
         int nonce = 0;
         int i = 0;
-        BigInteger d = privateKey(pubKey);
+        BigInteger d = privateKey(priKey);
         Point Q = secp.G().multiply(d);
         nonce = 0;
         Ecdsa ecd = new Ecdsa(secp);
@@ -118,5 +123,38 @@ public class EccTool {
         byte[] checksum = Ripemd160.from(Raw.concat(pub_buf, "K1".getBytes())).bytes();
         byte[] signatureString = Raw.concat(pub_buf, Raw.copy(checksum, 0, 4));
         return "SIG_K1_" + Base58.encode(signatureString);
+    }
+
+    public static boolean verifySignature(String publicKey, String message, String signature) {
+        // Step 1: Decode the signature
+        String base58Signature = signature.substring(7); // Remove "SIG_K1_" prefix
+        byte[] signatureBytes = Base58.decode(base58Signature);
+        byte[] pubBuf = Arrays.copyOfRange(signatureBytes, 0, 65);
+
+        // Step 2: Extract R and S from the signature
+        BigInteger r = new BigInteger(1, Arrays.copyOfRange(pubBuf, 1, 33));
+        BigInteger s = new BigInteger(1, Arrays.copyOfRange(pubBuf, 33, 65));
+
+        // Step 3: Hash the message
+        String messageHash = Hex.toHex(SHA.sha256(message));
+
+        // Step 4: Recover the public key from the signature
+        Ecdsa ecdsa = new Ecdsa(secp);
+        int recoveryParam = (int) (pubBuf[0]) - 27 - 4; // Remove compact and compressed flags
+        Point recoveredPubKey = ecdsa.recoverPublicKeyFromSignature(messageHash, new Ecdsa.SignBigInt(r, s), recoveryParam);
+
+        // Step 5: Compare the recovered public key with the provided public key
+        String recoveredPubKeyString = toPublicKeyString(recoveredPubKey);
+        return publicKey.equals(recoveredPubKeyString);
+    }
+
+    private static String toPublicKeyString(Point publicKeyPoint) {
+        byte[] pubBuf = publicKeyPoint.getEncoded();
+        byte[] csum = Ripemd160.from(pubBuf).bytes();
+        csum = Raw.copy(csum, 0, 4);
+        byte[] addy = Raw.concat(pubBuf, csum);
+        StringBuffer bf = new StringBuffer(address_prefix);
+        bf.append(Base58.encode(addy));
+        return bf.toString();
     }
 }

@@ -89,3 +89,46 @@ The above management of private keys in memory is insecure and not recommended. 
 ```
 
 In this way, we don't need to explicitly import the private key, but it is handled by `AmaxAndroidKeyStoreSignProvider`.
+
+
+You can also use the utility classes provided with the SDK to generate keys and verify signatures:
+
+```java
+// Creating Keys
+String priKey = EccTool.createPrivateKey();
+String pubKey = EccTool.toPublicKey(priKey);
+String message = "123456";
+
+// Signature data
+String signature = EccTool.sign(priKey,message);
+System.out.println("priKey:"+priKey);
+System.out.println("pubKey:"+pubKey);
+System.out.println("signature:"+signature);
+
+// Verify Signature
+boolean r = EccTool.verifySignature(pubKey,message,signature);
+System.out.println("verify:"+r);
+```
+
+## Other
+
+Configure warehouse address：
+```
+        maven {
+            url "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+        }
+```
+Non-Android environments, no need to configure packages with `-4a` suffix:
+```
+    implementation 'io.github.armoniax:amax4j:1.0.0-SNAPSHOT'
+```
+
+
+```java
+AmaxOption option = AmaxOption.builder()
+        .setUrl("https://test-chain.ambt.art/")
+        .setSerializationProvider(new AbiSerializationProviderImpl())
+        .setAmaxSignKind(AmaxSignKind.SOFT)
+        .setSignatureProvider(new SoftSignatureProviderImpl())
+        .build();
+```

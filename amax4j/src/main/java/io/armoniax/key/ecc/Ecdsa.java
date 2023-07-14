@@ -7,9 +7,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-
-
-
 public class Ecdsa {
 
 	Secp256k curve;
@@ -66,22 +63,6 @@ public class Ecdsa {
 		} else {
 			x = d.toByteArray();
 		}
-		// int padding = d.toByteArray().length-tmp.length;
-		// byte[] zeros = null;
-		// if(padding>0) {
-		// zeros = new byte[padding];
-		// for(int i =0;i<padding;i++) {
-		// zeros[i] = 0 ;
-		// }
-		// }
-		//
-		// byte[] x = ByteUtils.copy(d.toByteArray(), 0, d.toByteArray().length-1) ;
-		//
-		// if(zeros==null) {
-		// x = tmp;
-		// }else {
-		// x = ByteUtils.concat(zeros, tmp);
-		// }
 
 		byte[] k = new byte[32];
 		byte[] v = new byte[32];
@@ -144,6 +125,13 @@ public class Ecdsa {
 
 		public BigInteger getK() {
 			return k;
+		}
+
+		public SignBigInt(){}
+
+		public SignBigInt(BigInteger r, BigInteger s) {
+			this.r = r;
+			this.s = s;
 		}
 
 		public void setK(BigInteger k) {
@@ -230,5 +218,10 @@ public class Ecdsa {
 		}
 
 		return Q;
+	}
+
+	public Point recoverPublicKeyFromSignature(String dataHash, SignBigInt signature, int recoveryId) {
+		BigInteger e = new BigInteger(dataHash, 16);
+		return recoverPubKey(e, signature, recoveryId);
 	}
 }
