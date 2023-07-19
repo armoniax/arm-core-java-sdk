@@ -19,13 +19,13 @@ String osName = System.getProperty("os.name").toLowerCase();
 String archName = System.getProperty("os.arch");
 
 if (osName.contains("win")) {
-    platformName = "-win-" + archName;
+    platformName = "win-" + archName;
 } else if (osName.contains("mac")) {
-    platformName = "-mac-" + archName;
+    platformName = "mac-" + archName;
 } else if (osName.contains("nux")) {
-    platformName = "-linux-" + archName;
+    platformName = "linux-" + archName;
 } else {
-    platformName = "-unknown-"  + archName;
+    platformName = "unknown-"  + archName;
 }
 
 allprojects {
@@ -54,7 +54,7 @@ dependencies {
 }
 
 jar {
-    archiveFileName = 'amax-serialization-provider-'+ project.version + platformName + '.jar'
+    archiveFileName = 'amax-serialization-provider-'+ project.version + '-' + platformName + '.jar'
     dependsOn 'copyNativeLibrary'
     // Copy lib file before jar is created
     from('amaxabi/build/lib/main/release') {

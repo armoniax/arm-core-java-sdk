@@ -20,7 +20,7 @@ public class EmbeddedLibraryTools {
 
         // attempt to locate embedded native library within JAR at following location:
         String[] allowedExtensions = new String[]{"dylib", "so", "dll"};
-        String[] libs = new String[]{"libamaxabi"};
+        String[] libs = new String[]{"libamaxabi","amaxabi"};
         StringBuilder url = new StringBuilder();
         url.append("/amaxabi/build/lib/main/release/");
         for (String lib : libs) {
