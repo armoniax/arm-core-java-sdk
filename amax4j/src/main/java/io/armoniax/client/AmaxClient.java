@@ -72,6 +72,8 @@ public interface AmaxClient {
             throws TransactionSignAndBroadCastError, TransactionPrepareError;
 
     String getActions(int pos,int offset,String accountName) throws RpcProviderError;
+
+    TransactionResponse sendTransaction(Trx trx) throws TransactionPrepareError, TransactionSignAndBroadCastError;
     String getTransaction(String id) throws RpcProviderError;
 
 

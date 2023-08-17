@@ -3,7 +3,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.armoniax.error.serializationProvider.*;
 import io.armoniax.abiserializationprovider.AbiSerializationProviderImpl;
-import io.armoniax.models.AbiEosSerializationObject;
+import io.armoniax.models.AbiSerializationObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -139,7 +139,7 @@ public class AbieosTest {
         String json = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject("amax.token", "transfer", null, abi);
+            AbiSerializationObject serializationObject = new AbiSerializationObject("amax.token", "transfer", null, abi);
             serializationObject.setHex(hex);
             abieos.deserialize(serializationObject);
             json = serializationObject.getJson();
@@ -159,7 +159,7 @@ public class AbieosTest {
         String hex = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject("contract", "retval.simple", returnValueType, RETURN_VALUE_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject("contract", "retval.simple", returnValueType, RETURN_VALUE_ABI);
             serializationObject.setJson(json);
             abieos.serialize(serializationObject);
             hex = serializationObject.getHex();
@@ -180,7 +180,7 @@ public class AbieosTest {
         String hex = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject("contract", "retval.complex", returnValueType, RETURN_VALUE_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject("contract", "retval.complex", returnValueType, RETURN_VALUE_ABI);
             serializationObject.setJson(json);
             abieos.serialize(serializationObject);
             hex = serializationObject.getHex();
@@ -201,7 +201,7 @@ public class AbieosTest {
         String hex = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject("contract", "retval.null", returnValueType, RETURN_VALUE_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject("contract", "retval.null", returnValueType, RETURN_VALUE_ABI);
             serializationObject.setJson(json);
             abieos.serialize(serializationObject);
             hex = serializationObject.getHex();
@@ -222,7 +222,7 @@ public class AbieosTest {
         String hex = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject("", "", returnValueType, RETURN_VALUE_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject("", "", returnValueType, RETURN_VALUE_ABI);
             serializationObject.setJson(json);
             abieos.serialize(serializationObject);
             hex = serializationObject.getHex();
@@ -243,7 +243,7 @@ public class AbieosTest {
         String hex = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject(null, null, returnValueType, RETURN_VALUE_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject(null, null, returnValueType, RETURN_VALUE_ABI);
             serializationObject.setJson(json);
             abieos.serialize(serializationObject);
             hex = serializationObject.getHex();
@@ -264,7 +264,7 @@ public class AbieosTest {
         Boolean errorThrown = false;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject("contract", "invalid", returnValueType, RETURN_VALUE_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject("contract", "invalid", returnValueType, RETURN_VALUE_ABI);
             serializationObject.setJson(json);
             abieos.serialize(serializationObject);
             hex = serializationObject.getHex();
@@ -286,7 +286,7 @@ public class AbieosTest {
         String json = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject("contract", "retval.simple", returnValueType, RETURN_VALUE_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject("contract", "retval.simple", returnValueType, RETURN_VALUE_ABI);
             serializationObject.setHex(hex);
             abieos.deserialize(serializationObject);
             json = serializationObject.getJson();
@@ -307,7 +307,7 @@ public class AbieosTest {
         String json = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject("contract", "retval.complex", returnValueType, RETURN_VALUE_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject("contract", "retval.complex", returnValueType, RETURN_VALUE_ABI);
             serializationObject.setHex(hex);
             abieos.deserialize(serializationObject);
             json = serializationObject.getJson();
@@ -328,7 +328,7 @@ public class AbieosTest {
         String json = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject("contract", "retval.null", returnValueType, RETURN_VALUE_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject("contract", "retval.null", returnValueType, RETURN_VALUE_ABI);
             serializationObject.setHex(hex);
             abieos.deserialize(serializationObject);
             json = serializationObject.getJson();
@@ -349,7 +349,7 @@ public class AbieosTest {
         String json = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject("", "", returnValueType, RETURN_VALUE_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject("", "", returnValueType, RETURN_VALUE_ABI);
             serializationObject.setHex(hex);
             abieos.deserialize(serializationObject);
             json = serializationObject.getJson();
@@ -370,7 +370,7 @@ public class AbieosTest {
         String json = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject(null, null, returnValueType, RETURN_VALUE_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject(null, null, returnValueType, RETURN_VALUE_ABI);
             serializationObject.setHex(hex);
             abieos.deserialize(serializationObject);
             json = serializationObject.getJson();
@@ -391,7 +391,7 @@ public class AbieosTest {
         Boolean errorThrown = false;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject("contract", "invalid", returnValueType, RETURN_VALUE_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject("contract", "invalid", returnValueType, RETURN_VALUE_ABI);
             serializationObject.setHex(hex);
             abieos.deserialize(serializationObject);
             json = serializationObject.getJson();
@@ -471,7 +471,7 @@ public class AbieosTest {
         String hex = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject(null, null, returnValueType, QUERY_IT_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject(null, null, returnValueType, QUERY_IT_ABI);
             serializationObject.setJson(json);
             abieos.serialize(serializationObject);
             hex = serializationObject.getHex();
@@ -492,7 +492,7 @@ public class AbieosTest {
         String hex = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject(null, null, returnValueType, QUERY_IT_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject(null, null, returnValueType, QUERY_IT_ABI);
             serializationObject.setJson(json);
             abieos.serialize(serializationObject);
             hex = serializationObject.getHex();
@@ -513,7 +513,7 @@ public class AbieosTest {
         String hex = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject(null, null, returnValueType, QUERY_IT_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject(null, null, returnValueType, QUERY_IT_ABI);
             serializationObject.setJson(json);
             abieos.serialize(serializationObject);
             hex = serializationObject.getHex();
@@ -534,7 +534,7 @@ public class AbieosTest {
         String json = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject(null, null, returnValueType, QUERY_IT_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject(null, null, returnValueType, QUERY_IT_ABI);
             serializationObject.setHex(hex);
             abieos.deserialize(serializationObject);
             json = serializationObject.getJson();
@@ -555,7 +555,7 @@ public class AbieosTest {
         String json = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject(null, null, returnValueType, QUERY_IT_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject(null, null, returnValueType, QUERY_IT_ABI);
             serializationObject.setHex(hex);
             abieos.deserialize(serializationObject);
             json = serializationObject.getJson();
@@ -576,7 +576,7 @@ public class AbieosTest {
         String json = null;
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject(null, null, returnValueType, QUERY_IT_ABI);
+            AbiSerializationObject serializationObject = new AbiSerializationObject(null, null, returnValueType, QUERY_IT_ABI);
             serializationObject.setHex(hex);
             abieos.deserialize(serializationObject);
             json = serializationObject.getJson();
@@ -601,7 +601,7 @@ public class AbieosTest {
         String jsonResult = null;
 
         try {
-            AbiEosSerializationObject deserializationObject = new AbiEosSerializationObject("queryit", "queryit", returnValueType, QUERY_IT_ABI);
+            AbiSerializationObject deserializationObject = new AbiSerializationObject("queryit", "queryit", returnValueType, QUERY_IT_ABI);
             deserializationObject.setHex(hex);
             abieos.deserialize(deserializationObject);
             jsonResult = deserializationObject.getJson();
@@ -625,7 +625,7 @@ public class AbieosTest {
         String jsonResult = null;
 
         try {
-            AbiEosSerializationObject deserializationObject = new AbiEosSerializationObject("queryit", "queryit", returnValueType, QUERY_IT_ABI);
+            AbiSerializationObject deserializationObject = new AbiSerializationObject("queryit", "queryit", returnValueType, QUERY_IT_ABI);
             deserializationObject.setHex(hex);
             abieos.deserialize(deserializationObject);
             jsonResult = deserializationObject.getJson();
@@ -648,7 +648,7 @@ public class AbieosTest {
         String jsonResult = null;
 
         try {
-            AbiEosSerializationObject deserializationObject = new AbiEosSerializationObject(null, null, returnValueType, queryItAbi);
+            AbiSerializationObject deserializationObject = new AbiSerializationObject(null, null, returnValueType, queryItAbi);
             deserializationObject.setHex(hex);
             abieos.deserialize(deserializationObject);
             jsonResult = deserializationObject.getJson();
@@ -657,7 +657,7 @@ public class AbieosTest {
         }
 
         try {
-            AbiEosSerializationObject serializationObject = new AbiEosSerializationObject(null, null, returnValueType, queryItAbi);
+            AbiSerializationObject serializationObject = new AbiSerializationObject(null, null, returnValueType, queryItAbi);
             serializationObject.setJson(json);
             abieos.serialize(serializationObject);
             hexResult = serializationObject.getHex();
@@ -681,7 +681,7 @@ public class AbieosTest {
         String jsonResult = null;
 
         try {
-            AbiEosSerializationObject deserializationObject = new AbiEosSerializationObject(null, null, returnValueType, queryItAbi);
+            AbiSerializationObject deserializationObject = new AbiSerializationObject(null, null, returnValueType, queryItAbi);
             deserializationObject.setHex(hex);
             abieos.deserialize(deserializationObject);
             jsonResult = deserializationObject.getJson();

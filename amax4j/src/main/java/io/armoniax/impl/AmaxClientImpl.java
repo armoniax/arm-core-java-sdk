@@ -9,7 +9,6 @@ import io.armoniax.enums.AmaxSignKind;
 import io.armoniax.error.rpcProvider.GetBlockRpcError;
 import io.armoniax.error.rpcProvider.GetInfoRpcError;
 import io.armoniax.error.rpcProvider.RpcProviderError;
-import io.armoniax.error.serializationProvider.SerializationProviderError;
 import io.armoniax.error.session.TransactionPrepareError;
 import io.armoniax.error.session.TransactionSignAndBroadCastError;
 import io.armoniax.models.NewAccount;
@@ -41,7 +40,7 @@ public final class AmaxClientImpl implements AmaxClient {
     private final IABIProvider abiProvider;
     private final AmaxOption option;
 
-    public AmaxClientImpl(AmaxOption option) throws RpcInitializerError, SerializationProviderError, ImportKeyError {
+    public AmaxClientImpl(AmaxOption option) throws RpcInitializerError {
         this.option = option;
         rpcProvider = new AmaxRpcImpl(option);
         serialProvider = option.getSerialProvider();
@@ -53,12 +52,14 @@ public final class AmaxClientImpl implements AmaxClient {
         abiProvider = new ABIProviderImpl(rpcProvider, serialProvider);
     }
 
+    @Override
     public void importKey(@NotNull String privateKey) throws ImportKeyError{
         if(option.getSignKind() == AmaxSignKind.SOFT){
             ((SoftSignatureProviderImpl)signProvider).importKey(privateKey);
         }
     }
 
+    @Override
     public TransactionResponse sendTransaction(Trx trx) throws TransactionPrepareError, TransactionSignAndBroadCastError {
         TransactionSession session = new TransactionSession(serialProvider, rpcProvider, abiProvider, signProvider);
 
@@ -98,6 +99,7 @@ public final class AmaxClientImpl implements AmaxClient {
         return rpcProvider.getAccount(accountName);
     }
 
+    @Override
     public CheckerInfo getAllCheckers() throws RpcProviderError {
         HashMap<String, Object> jsonObj = new HashMap<>();
         jsonObj.put("code","realme.dao");
@@ -112,6 +114,7 @@ public final class AmaxClientImpl implements AmaxClient {
         return new Gson().fromJson(jsonResult, CheckerInfo.class);
     }
 
+    @Override
     public CheckerInfo getCheckerByUser(String user) throws RpcProviderError {
         HashMap<String, Object> json = new HashMap<>();
         json.put("code","realme.dao");
@@ -128,23 +131,23 @@ public final class AmaxClientImpl implements AmaxClient {
 
     @Override
     public TransactionResponse transfer(String from, String to, String quantity, String memo) throws TransactionSignAndBroadCastError, TransactionPrepareError {
-        StringBuilder data = new StringBuilder();
-        data.append("{");
-        data.append("\"from\":").append(quot(from)).append(",");
-        data.append("\"to\":").append(quot(to)).append(",");
-        data.append("\"quantity\":").append(quot(quantity)).append(",");
-        data.append("\"memo\":").append(quot(memo));
-        data.append("}");
+        String data = "{" +
+                "\"from\":" + quot(from) + "," +
+                "\"to\":" + quot(to) + "," +
+                "\"quantity\":" + quot(quantity) + "," +
+                "\"memo\":" + quot(memo) +
+                "}";
 
         List<Action> actions = Collections.singletonList(
                 new Action("amax.token", "transfer",
                         Collections.singletonList(
                                 new Authorization(from, "active")),
-                        data.toString()));
+                        data));
 
         return sendTransaction(Trx.builder().setExpiresSeconds(600).setUseLastIrreversible(false).setActions(actions).build());
     }
 
+    @Override
     public TransactionResponse buyRam(String payer, String receiver, int bytes) throws TransactionSignAndBroadCastError, TransactionPrepareError {
         String data = createBuyRamData(payer, receiver, bytes);
         List<Action> actions = Collections.singletonList(
@@ -155,6 +158,7 @@ public final class AmaxClientImpl implements AmaxClient {
         return sendTransaction(Trx.builder().setActions(actions).build());
     }
 
+    @Override
     public TransactionResponse stakeCpuAndNet(String from, String receiver, String cpuQuantity, String netQuantity, boolean transfer) throws TransactionSignAndBroadCastError, TransactionPrepareError {
         String data = createStakeData(from, receiver, cpuQuantity, netQuantity, transfer);
         List<Action> actions = Collections.singletonList(
@@ -190,26 +194,22 @@ public final class AmaxClientImpl implements AmaxClient {
     }
 
     private String createBuyRamData(String payer, String receiver, int bytes) {
-        StringBuilder data = new StringBuilder();
-        data.append("{");
-        data.append("\"payer\":").append(quot(payer)).append(",");
-        data.append("\"receiver\":").append(quot(receiver)).append(",");
-        data.append("\"bytes\":").append(bytes);
-        data.append("}");
-        return data.toString();
+        return "{" +
+                "\"payer\":" + quot(payer) + "," +
+                "\"receiver\":" + quot(receiver) + "," +
+                "\"bytes\":" + bytes +
+                "}";
     }
 
     private String createStakeData(String from, String receiver,
                                    String cpuQuantity, String netQuantity,
                                    boolean transfer) {
-        StringBuilder data = new StringBuilder();
-        data.append("{");
-        data.append("\"from\":").append(quot(from)).append(",");
-        data.append("\"receiver\":").append(quot(receiver)).append(",");
-        data.append("\"stake_cpu_quantity\":").append(quot(cpuQuantity)).append(",");
-        data.append("\"stake_net_quantity\":").append(quot(netQuantity)).append(",");
-        data.append("\"transfer\":").append(transfer);
-        data.append("}");
-        return data.toString();
+        return "{" +
+                "\"from\":" + quot(from) + "," +
+                "\"receiver\":" + quot(receiver) + "," +
+                "\"stake_cpu_quantity\":" + quot(cpuQuantity) + "," +
+                "\"stake_net_quantity\":" + quot(netQuantity) + "," +
+                "\"transfer\":" + transfer +
+                "}";
     }
 }

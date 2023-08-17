@@ -60,10 +60,10 @@ public class AndroidKeyStoreUtility {
 
     /**
      * Generate a new key inside Android KeyStore by the given [keyGenParameterSpec] and return the new key in EOS format
-     *
+     * <p>
      * The given [keyGenParameterSpec] is the parameter specification to generate a new key. This specification
      * must include the following information if the key to be generated needs to be EOS Mainnet compliant:
-     *
+     * <p>
      * - [KeyGenParameterSpec] must include [KeyProperties.PURPOSE_SIGN]
      * - [KeyGenParameterSpec.getAlgorithmParameterSpec] must be of type [ECGenParameterSpec]
      * - [KeyGenParameterSpec.getAlgorithmParameterSpec]'s curve name must be [SECP256R1_CURVE_NAME]
@@ -84,19 +84,19 @@ public class AndroidKeyStoreUtility {
             throw new InvalidKeyGenParameter(GENERATE_KEY_ECGEN_MUST_USE_SECP256R1);
         }
 
-        KeyPairGenerator kpg  =
+        KeyPairGenerator kpg =
                 KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, ANDROID_KEYSTORE);
 
         kpg.initialize(keyGenParameterSpec);
 
-        KeyPair newKeyPair  = kpg.generateKeyPair();
-        return convertAndroidKeyStorePublicKeyToEOSFormat((ECPublicKey)newKeyPair.getPublic());
+        KeyPair newKeyPair = kpg.generateKeyPair();
+        return convertAndroidKeyStorePublicKeyToEOSFormat((ECPublicKey) newKeyPair.getPublic());
     }
 
 
     /**
      * Generate a new key inside AndroidKeyStore by the given [alias] and return the new key in EOS format
-     *
+     * <p>
      * The given [alias] is the identity of the key. The new key will be generated with the Default [KeyGenParameterSpec] from the [generateDefaultKeyGenParameterSpecBuilder]
      */
     public static String generateAndroidKeyStoreKey(String alias) throws InvalidAlgorithmParameterException, InvalidKeyGenParameter, NoSuchAlgorithmException, NoSuchProviderException, IOException, PublicKeyConversionError, EOSFormatterError {
@@ -108,17 +108,18 @@ public class AndroidKeyStoreUtility {
 
     /**
      * Convert an ECPublic Key (SECP256R1) that resides in the Android KeyStore to EOS format
+     *
      * @param androidECPublicKey ECPublicKey - the ECPublic Key (SECP256R1) to convert
      * @return String - EOS format of the provided key
      */
     private static String convertAndroidKeyStorePublicKeyToEOSFormat(ECPublicKey androidECPublicKey) throws IOException, PublicKeyConversionError, EOSFormatterError {
         // Read the key information using the supported ASN.1 standard.
-        ASN1InputStream bIn  = new ASN1InputStream(new ByteArrayInputStream(androidECPublicKey.getEncoded()));
+        ASN1InputStream bIn = new ASN1InputStream(new ByteArrayInputStream(androidECPublicKey.getEncoded()));
         ASN1Sequence asn1Sequence = (ASN1Sequence) (bIn.readObject()).toASN1Primitive();
 
         // Verify if the key is ECPublicKey and SECP256R1
         ASN1Encodable[] publicKeyOID =
-                ((ASN1Sequence)(asn1Sequence.getObjectAt(ANDROID_PUBLIC_KEY_OID_ID))).toArray();
+                ((ASN1Sequence) (asn1Sequence.getObjectAt(ANDROID_PUBLIC_KEY_OID_ID))).toArray();
 
         if (!X9ObjectIdentifiers.id_ecPublicKey.getId().equals(publicKeyOID[EC_PUBLICKEY_OID_INDEX].toString())
                 || !X9ObjectIdentifiers.prime256v1.getId().equals(publicKeyOID[SECP256R1_OID_INDEX].toString())
@@ -132,16 +133,16 @@ public class AndroidKeyStoreUtility {
         pemWriter.writeObject(pemObject);
         pemWriter.flush();
 
-        String pemFormattedPublicKey  = stringWriter.toString();
+        String pemFormattedPublicKey = stringWriter.toString();
 
         return EOSFormatter.convertPEMFormattedPublicKeyToEOSFormat(pemFormattedPublicKey, false);
     }
 
     /**
      * Get all (SECP256R1) curve keys in EOS format from Android KeyStore
-     * @param password KeyStore.ProtectionParameter? - the password to load all the keys
-     * @param loadStoreParameter KeyStore.LoadStoreParameter? - the KeyStore Parameter to load the KeyStore instance
      *
+     * @param password           KeyStore.ProtectionParameter? - the password to load all the keys
+     * @param loadStoreParameter KeyStore.LoadStoreParameter? - the KeyStore Parameter to load the KeyStore instance
      * @return List<String> - List of SECP256R1 keys inside Android KeyStore (EOS Format)
      */
     public static List<Pair<String, String>> getAllAndroidKeyStoreKeysInEOSFormat(
@@ -160,7 +161,7 @@ public class AndroidKeyStoreUtility {
                         .generatePublic(new X509EncodedKeySpec(((KeyStore.PrivateKeyEntry) keyEntry).getCertificate().getPublicKey().getEncoded()));
 
                 aliasKeyPair.add(
-                        new Pair(alias,convertAndroidKeyStorePublicKeyToEOSFormat(ecPublicKey))
+                        new Pair(alias, convertAndroidKeyStorePublicKeyToEOSFormat(ecPublicKey))
                 );
             }
         }
@@ -170,13 +171,14 @@ public class AndroidKeyStoreUtility {
 
     /**
      * Get all (SECP256R1) keys in EOS format from Android KeyStore
-     * @param alias String - the key's identity
-     * @param password KeyStore.ProtectionParameter? - the password to load all the keys
+     *
+     * @param alias              String - the key's identity
+     * @param password           KeyStore.ProtectionParameter? - the password to load all the keys
      * @param loadStoreParameter KeyStore.LoadStoreParameter? - the KeyStore Parameter to load the KeyStore instance
      * @return String - the SECP256R1 key in the Android KeyStore
      */
     public static String getAndroidKeyStoreKeyInEOSFormat(
-            String alias ,
+            String alias,
             KeyStore.ProtectionParameter password,
             KeyStore.LoadStoreParameter loadStoreParameter
     ) throws QueryAndroidKeyStoreError {
@@ -184,7 +186,7 @@ public class AndroidKeyStoreUtility {
             KeyStore keyStore = KeyStore.getInstance(ANDROID_KEYSTORE);
             keyStore.load(loadStoreParameter);
 
-            KeyStore.PrivateKeyEntry keyEntry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(alias, password);
+            KeyStore.PrivateKeyEntry keyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(alias, password);
             ECPublicKey ecPublicKey = (ECPublicKey) KeyFactory.getInstance(keyEntry.getCertificate().getPublicKey().getAlgorithm()).generatePublic(
                     new X509EncodedKeySpec(keyEntry.getCertificate().getPublicKey().getEncoded())
             );
@@ -198,18 +200,18 @@ public class AndroidKeyStoreUtility {
     /**
      * Sign data with a key in the KeyStore.
      *
-     * @param data ByteArray - data to be signed
-     * @param alias String - identity of the key to be used for signing
+     * @param data     ByteArray - data to be signed
+     * @param alias    String - identity of the key to be used for signing
      * @param password KeyStore.ProtectionParameter - password of the key
      * @return Binary version of the signature
      * @throws AndroidKeyStoreSigningError
      */
     public static byte[] sign(byte[] data, String alias,
-                       KeyStore.ProtectionParameter password,
-                       KeyStore.LoadStoreParameter loadStoreParameter
+                              KeyStore.ProtectionParameter password,
+                              KeyStore.LoadStoreParameter loadStoreParameter
     ) throws AndroidKeyStoreSigningError {
         try {
-            KeyStore ks  = KeyStore.getInstance(ANDROID_KEYSTORE);
+            KeyStore ks = KeyStore.getInstance(ANDROID_KEYSTORE);
             ks.load(loadStoreParameter);
 
             KeyStore.PrivateKeyEntry key = (KeyStore.PrivateKeyEntry) ks.getEntry(alias, password);
@@ -226,13 +228,13 @@ public class AndroidKeyStoreUtility {
     /**
      * Delete a key inside Android KeyStore by its alias
      *
-     * @param keyAliasToDelete String - the alias of the key to delete
+     * @param keyAliasToDelete   String - the alias of the key to delete
      * @param loadStoreParameter KeyStore.LoadStoreParameter? - the KeyStore Parameter to load the KeyStore instance
      * @throws AndroidKeyStoreDeleteError
      */
-    public static Boolean deleteKeyByAlias(String keyAliasToDelete , KeyStore.LoadStoreParameter loadStoreParameter) throws AndroidKeyStoreDeleteError {
+    public static Boolean deleteKeyByAlias(String keyAliasToDelete, KeyStore.LoadStoreParameter loadStoreParameter) throws AndroidKeyStoreDeleteError {
         try {
-            KeyStore ks  = KeyStore.getInstance(ANDROID_KEYSTORE);
+            KeyStore ks = KeyStore.getInstance(ANDROID_KEYSTORE);
             ks.load(loadStoreParameter);
 
             ks.deleteEntry(keyAliasToDelete);
@@ -265,11 +267,11 @@ public class AndroidKeyStoreUtility {
 
     /**
      * Generate a default [KeyGenParameterSpec.Builder] with
-     *
+     * <p>
      * [KeyProperties.DIGEST_SHA256] as its digest
-     *
+     * <p>
      * [ECGenParameterSpec] as its algorithm parameter spec
-     *
+     * <p>
      * [SECP256R1_CURVE_NAME] as its EC curve
      *
      * @return KeyGenParameterSpec
@@ -278,5 +280,9 @@ public class AndroidKeyStoreUtility {
         return new KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_SIGN)
                 .setDigests(KeyProperties.DIGEST_SHA256)
                 .setAlgorithmParameterSpec(new ECGenParameterSpec(SECP256R1_CURVE_NAME));
+    }
+
+    public static KeySecurityManagement keySecurityManagement(){
+        return new KeySecurityManagement();
     }
 }

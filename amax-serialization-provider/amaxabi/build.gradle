@@ -4,6 +4,13 @@ plugins {
     id 'cpp-library'
 }
 
+model {
+    toolChains {
+        mingw(Gcc)
+//        visualCpp(VisualCpp)
+    }
+}
+
 library {
 //    targetMachines.add(machines.macOS.x86_64)
     binaries.configureEach { CppSharedLibrary binary ->
@@ -47,6 +54,9 @@ library {
                 } else {
                     compileTask.compilerArgs.addAll(["-x", "c++", "-std=c++17", "-DABIEOS_NO_INT128"])
                 }
+            }
+            if (toolChain.name == "mingw") {
+                compileTask.compilerArgs.add("-DABIEOS_NO_INT128")
             }
         }
     }

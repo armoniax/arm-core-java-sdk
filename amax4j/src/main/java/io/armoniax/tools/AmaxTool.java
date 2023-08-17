@@ -16,11 +16,22 @@ public class AmaxTool {
 
     /**
      * 对字符串数据签名
-     * @param pubKey 公钥
+     * @param priKey 私钥
      * @param data 数据
      * @return
      */
-    public static String sign(String pubKey,String data){
-        return  EccTool.sign(pubKey,data);
+    public static String sign(String priKey,String data){
+        return  EccTool.sign(priKey,data);
+    }
+
+    /**
+     * 校验签名
+     * @param publicKey
+     * @param message
+     * @param signature
+     * @return
+     */
+    public static boolean verifySignature(String publicKey, String message, String signature){
+        return  EccTool.verifySignature(publicKey,message,signature);
     }
 }
