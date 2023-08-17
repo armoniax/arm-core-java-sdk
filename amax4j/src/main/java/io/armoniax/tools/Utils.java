@@ -45,4 +45,14 @@ public class Utils {
                 .disableHtmlEscaping()
                 .create();
     }
+
+    public static <T extends Throwable> T findCause(Throwable e, Class<T> type) {
+        if (e == null) {
+            return null;
+        } else if (type.isInstance(e)) {
+            return type.cast(e);
+        } else {
+            return findCause(e.getCause(), type);
+        }
+    }
 }

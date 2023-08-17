@@ -83,61 +83,61 @@ task deleteCopiedNativeLibrary(type: Delete) {
 clean.dependsOn 'deleteCopiedNativeLibrary'
 
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId project.group
-            artifactId project.name
-            version project.version
-
-            from components.java
-            pom {
-                name = 'amax4j'
-                description = "Armonia RealMe Account Core Java SDK"
-                url = "https://github.com/armoniax/arm-core-java-sdk"
-                licenses {
-                    license {
-                        name = 'MIT License'
-                        url = 'https://mit-license.org/'
-                    }
-                }
-                developers {
-                    developer {
-                        id = "aplink"
-                        name = "APLink Pte. Ltd."
-                        email = "aplink2022@gmail.com"
-                    }
-                }
-                scm {
-                    url = 'https://github.com/armoniax/arm-core-java-sdk'
-                    connection = 'scm:git:https://github.com/armoniax/arm-core-java-sdk.git'
-                    developerConnection = 'scm:git:https://github.com/armoniax/arm-core-java-sdk.git'
-                }
-            }
-        }
-    }
-
-    repositories {
-        maven {
-            name 'sonatypeRepository'
-            url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-            credentials {
-                username = "${sonatypeUsername}"
-                password = "${sonatypePassword}"
-            }
-        }
-        maven {
-            name = 'sonatypeSnapshotRepository'
-            url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-            credentials {
-                username = "${sonatypeUsername}"
-                password = "${sonatypePassword}"
-            }
-        }
-    }
-}
-
-signing {
-    sign publishing.publications.mavenJava
-}
+//publishing {
+//    publications {
+//        mavenJava(MavenPublication) {
+//            groupId project.group
+//            artifactId project.name
+//            version project.version
+//
+//            from components.java
+//            pom {
+//                name = 'amax4j'
+//                description = "Armonia RealMe Account Core Java SDK"
+//                url = "https://github.com/armoniax/arm-core-java-sdk"
+//                licenses {
+//                    license {
+//                        name = 'MIT License'
+//                        url = 'https://mit-license.org/'
+//                    }
+//                }
+//                developers {
+//                    developer {
+//                        id = "aplink"
+//                        name = "APLink Pte. Ltd."
+//                        email = "aplink2022@gmail.com"
+//                    }
+//                }
+//                scm {
+//                    url = 'https://github.com/armoniax/arm-core-java-sdk'
+//                    connection = 'scm:git:https://github.com/armoniax/arm-core-java-sdk.git'
+//                    developerConnection = 'scm:git:https://github.com/armoniax/arm-core-java-sdk.git'
+//                }
+//            }
+//        }
+//    }
+//
+//    repositories {
+//        maven {
+//            name 'sonatypeRepository'
+//            url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+//            credentials {
+//                username = "${sonatypeUsername}"
+//                password = "${sonatypePassword}"
+//            }
+//        }
+//        maven {
+//            name = 'sonatypeSnapshotRepository'
+//            url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+//            credentials {
+//                username = "${sonatypeUsername}"
+//                password = "${sonatypePassword}"
+//            }
+//        }
+//    }
+//}
+//
+//signing {
+//    sign publishing.publications.mavenJava
+//}
 
