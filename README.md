@@ -45,7 +45,7 @@ The Android environment has already provided a cross-compilation package, so you
 
 #### Windows
 1. Install the C++ compiler .
-   The MinGW compiler is required here, you can open this page and select the `x86_64-win32-sjlj` or `x86_64-win32-seh` version to download.
+   The MinGW compiler is required here, you can open [this page](https://sourceforge.net/projects/mingw-w64/files/) and select the `x86_64-win32-sjlj` or `x86_64-win32-seh` version to download.
 2. Extract the downloaded package and add the `bin` directory to the system environment variable Path
 3. Reopen a new cmd command line and execute `gcc -v`, which correctly outputs the compiler version information
 4. Clone the entire project and `cd amax-serialization-provider`, then run `. /gradlew assemble`, and after successful compilation, generate the `amax-serialization-provider` jar package under `build/libs`.
